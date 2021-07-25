@@ -94,9 +94,9 @@ void MainWindow::startCalculation()
     emit operate();
 }
 
-QString MainWindow::sizeToQString(long size)
+QString MainWindow::sizeToQString(size_t size)
 {
-    double d_size = size;
+    long double d_size = size;
     QStringList list;
     list << "KB" << "MB" << "GB" << "TB";
 
@@ -153,7 +153,7 @@ void MainWindow::onCalculationFinished()
     ui->te_Output->append("_______________________________________");
     ui->te_Output->setTextColor(QColor("green"));
 
-    for(QMap<QString,long>::iterator it = dir.dir.begin(); it != dir.dir.end(); it++)
+    for(QMap<QString,size_t>::iterator it = dir.dir.begin(); it != dir.dir.end(); it++)
     {
         ui->te_Output->append(it.key() + "   ||    " + sizeToQString(it.value()));
         series->append(it.key(), it.value());
@@ -163,7 +163,7 @@ void MainWindow::onCalculationFinished()
 
     long fileSize = 0;
     ui->te_Output->setTextColor(QColor("blue"));
-    for(QMap<QString,long>::iterator it = dir.file.begin(); it != dir.file.end(); it++)
+    for(QMap<QString,size_t>::iterator it = dir.file.begin(); it != dir.file.end(); it++)
     {
         ui->te_Output->append(it.key() + "   ||    " + sizeToQString(it.value()));
         fileSize += it.value();

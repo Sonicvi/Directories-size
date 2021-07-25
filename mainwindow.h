@@ -37,7 +37,7 @@ private:
     DirDesc getDirFilesList(QString path);
     void createCalculation();
     void startCalculation();
-    QString sizeToQString(long);
+    QString sizeToQString(size_t);
 
     Ui::MainWindow *ui;
     QChartView *chartView;

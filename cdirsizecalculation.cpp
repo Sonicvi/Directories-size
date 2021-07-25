@@ -13,7 +13,7 @@ void CDirSizeCalculation::runCalculation()
     if(m_path != "")
     {
         m_result = getDirFilesList(m_path);
-        if(-1 != m_result.size)
+        if(ULLONG_MAX != m_result.size)
             emit resultReady();
     }
     else
@@ -37,19 +37,16 @@ DirDesc CDirSizeCalculation::getResult() const
     return m_result;
 }
 
-long CDirSizeCalculation::getDirSize(bf::path path)
+size_t CDirSizeCalculation::getDirSize(bf::path path)
 {
     size_t size=0;
     try
     {
-        qDebug()<< "dbt for";
-        for(bf::recursive_directory_iterator it(path);
+        for(bf::recursive_directory_iterator it(path, bf::directory_options::skip_permission_denied);
             it!=bf::recursive_directory_iterator();
             ++it)
         {
-            qDebug()<< "test is directory";
             if(!bf::is_directory(*it)){
-                qDebug()<< "get size";
                 QString test = QString::fromStdString(it->path().filename().string());
                 qDebug()<<"- file : "<< test <<" || size : "<<bf::file_size(*it) ;
                 size+=bf::file_size(*it);}
@@ -58,9 +55,11 @@ long CDirSizeCalculation::getDirSize(bf::path path)
     catch (const std::exception& e)
     {
         qDebug()<< e.what();
+        qDebug()<< bf::status(path).permissions();
+        qDebug()<< "error trying to get size of " + QString::fromWCharArray(path.c_str());
 
         emit errorOccured("error trying to get size of " + QString::fromWCharArray(path.c_str()));
-        size = -1;
+        size = ULLONG_MAX;
     }
     return size;
 }
@@ -71,7 +70,7 @@ DirDesc CDirSizeCalculation::getDirFilesList(QString path)
 
     DirDesc ret;
 
-    for(bf::directory_iterator it(path.toStdString());
+    for(bf::directory_iterator it(path.toStdString(), bf::directory_options::skip_permission_denied);
         it!=bf::directory_iterator();
         ++it)
     {
@@ -83,13 +82,11 @@ DirDesc CDirSizeCalculation::getDirFilesList(QString path)
         }
         else if(!bf::is_symlink(*it))
         {
-            QString::fromUtf8("éèçà");
-            QString test = QString::fromWCharArray(it->path().filename().c_str( ));
             QString name = QString::fromWCharArray(it->path().filename().c_str());
-            long dir_size = getDirSize(it->path());
-            if(dir_size == -1)
+            size_t dir_size = getDirSize(it->path());
+            if(dir_size == ULLONG_MAX)
             {
-                ret.size = -1;
+                ret.size = ULLONG_MAX;
                 return ret;
             }
             ret.dir[name] = dir_size;

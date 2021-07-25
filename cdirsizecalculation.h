@@ -9,9 +9,9 @@
 #include <boost/filesystem.hpp>
 
 typedef struct {
-    long size;
-    QMap<QString,long> file;
-    QMap<QString,long> dir;
+    size_t size;
+    QMap<QString,size_t> file;
+    QMap<QString,size_t> dir;
 }DirDesc;
 
 
@@ -34,7 +34,7 @@ private:
     QString m_path;
     DirDesc m_result;
 
-    long getDirSize(bf::path path);
+    size_t getDirSize(bf::path path);
     DirDesc getDirFilesList(QString path);
 
 public slots:
