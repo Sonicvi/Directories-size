@@ -77,6 +77,7 @@ void MainWindow::createCalculation()
     //connect(&calculationThread, &QThread::finished, calculation, &QObject::deleteLater);
     connect(this,&MainWindow::operate,calculation,&CDirSizeCalculation::runCalculation);
     connect(calculation, &CDirSizeCalculation::resultReady, this, &MainWindow::onCalculationFinished);
+    connect(calculation, &CDirSizeCalculation::errorOccured, this, &MainWindow::onCalculationFailed);
 }
 
 void MainWindow::startCalculation()
@@ -178,6 +179,9 @@ void MainWindow::onCalculationFinished()
 
 void MainWindow::onCalculationFailed(QString error)
 {
+
+    ui->pb_Stop->setEnabled(false);
+    ui->pb_ChoseDir->setEnabled(true);
 
     ui->te_Output->setTextColor(QColor("red"));
     ui->te_Output->setText("Error during calculation");

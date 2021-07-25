@@ -14,6 +14,9 @@ typedef struct {
     QMap<QString,long> dir;
 }DirDesc;
 
+
+namespace bf=boost::filesystem;
+
 class CDirSizeCalculation : public QObject
 {
     Q_OBJECT
@@ -31,7 +34,7 @@ private:
     QString m_path;
     DirDesc m_result;
 
-    long getDirSize(QString path);
+    long getDirSize(bf::path path);
     DirDesc getDirFilesList(QString path);
 
 public slots:
