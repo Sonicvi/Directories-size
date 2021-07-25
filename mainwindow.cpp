@@ -4,7 +4,8 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    ,calculation(new CDirSizeCalculation())
+    ,m_model(new CSizeModel)
+    ,calculation(new CDirSizeCalculation(m_model))
 {
     createCalculation();
     calculationThread.start();
@@ -72,7 +73,7 @@ DirDesc MainWindow::getDirFilesList(QString path)
 
 void MainWindow::createCalculation()
 {
-    calculation = new CDirSizeCalculation();
+    calculation = new CDirSizeCalculation(m_model);
     calculation->moveToThread(&calculationThread);
     //connect(&calculationThread, &QThread::finished, calculation, &QObject::deleteLater);
     connect(this,&MainWindow::operate,calculation,&CDirSizeCalculation::runCalculation);
@@ -175,6 +176,13 @@ void MainWindow::onCalculationFinished()
     chart->legend()->hide();
     chartView->setChart(chart);
     chartView->setRenderHint(QPainter::Antialiasing);
+//    QSqlQueryModel *model = m_model->getModel();
+    QSortFilterProxyModel *model=new QSortFilterProxyModel(this);
+    model->setDynamicSortFilter(true);
+    model->setSourceModel(m_model->getModel());
+    ui->tableView->setModel(model);
+    ui->tableView->setSortingEnabled(true);
+
 }
 
 void MainWindow::onCalculationFailed(QString error)

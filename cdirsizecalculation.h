@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QThread>
 #include <boost/filesystem.hpp>
+#include "csizemodel.h"
 
 typedef struct {
     size_t size;
@@ -22,7 +23,7 @@ class CDirSizeCalculation : public QObject
     Q_OBJECT
 
 public:
-    explicit CDirSizeCalculation(QObject *parent = nullptr);
+    explicit CDirSizeCalculation(CSizeModel* model ,QObject *parent = nullptr);
 
     void setPath(const QString &path);
 
@@ -33,8 +34,9 @@ public:
 private:
     QString m_path;
     DirDesc m_result;
+    CSizeModel* m_model;
 
-    size_t getDirSize(bf::path path);
+    size_t getDirSize(bf::path path, int dirId);
     DirDesc getDirFilesList(QString path);
 
 public slots:

@@ -14,8 +14,10 @@
 #include <QColor>
 #include <QDebug>
 #include <QThread>
+#include <QSortFilterProxyModel>
 
 #include "cdirsizecalculation.h"
+#include "csizemodel.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -43,6 +45,7 @@ private:
     QChartView *chartView;
     QPieSeries *series;
     CDirSizeCalculation *calculation;
+    CSizeModel *m_model;
 
 private slots:
     void onChoseButtonClicked();

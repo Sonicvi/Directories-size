@@ -2,14 +2,13 @@
 
 namespace bf=boost::filesystem;
 
-CDirSizeCalculation::CDirSizeCalculation(QObject *parent):m_path("")
+CDirSizeCalculation::CDirSizeCalculation(CSizeModel* model ,QObject *parent):m_model(model) ,m_path("")
 {
 
 }
 
 void CDirSizeCalculation::runCalculation()
 {
-    qDebug() << QThread::currentThreadId();
     if(m_path != "")
     {
         m_result = getDirFilesList(m_path);
@@ -37,7 +36,7 @@ DirDesc CDirSizeCalculation::getResult() const
     return m_result;
 }
 
-size_t CDirSizeCalculation::getDirSize(bf::path path)
+size_t CDirSizeCalculation::getDirSize(bf::path path, int dirId)
 {
     size_t size=0;
     try
@@ -47,9 +46,15 @@ size_t CDirSizeCalculation::getDirSize(bf::path path)
             ++it)
         {
             if(!bf::is_directory(*it)){
-                QString test = QString::fromStdString(it->path().filename().string());
-                qDebug()<<"- file : "<< test <<" || size : "<<bf::file_size(*it) ;
-                size+=bf::file_size(*it);}
+                QString name = QString::fromWCharArray(it->path().filename().c_str());
+                QString ext  = QString::fromWCharArray(it->path().extension().c_str());
+                QString path = QString::fromWCharArray(it->path().c_str());
+                size_t fileSize = bf::file_size(*it);
+                qDebug()<<"- file : "<< name <<" || size : "<<fileSize ;
+                size+=fileSize;
+                m_model->insertFile(name, ext, path, dirId, fileSize);
+            }
+
         }
     }
     catch (const std::exception& e)
@@ -69,21 +74,29 @@ DirDesc CDirSizeCalculation::getDirFilesList(QString path)
     size_t size=0;
 
     DirDesc ret;
-
+    QString name = QString::fromWCharArray(bf::path(path.toStdString()).filename().c_str());
+    int orgDir = m_model->insertDirectory(name, path, -1);
     for(bf::directory_iterator it(path.toStdString(), bf::directory_options::skip_permission_denied);
         it!=bf::directory_iterator();
         ++it)
     {
         if(!bf::is_directory(*it))
         {
-            QString name = QString::fromStdString(it->path().filename().string());
-            ret.file[name] = bf::file_size(*it);
-            size+=bf::file_size(*it);
+            QString name = QString::fromWCharArray(it->path().filename().c_str());
+            QString ext  = QString::fromWCharArray(it->path().extension().c_str());
+            QString path = QString::fromWCharArray(it->path().c_str());
+            size_t fileSize = bf::file_size(*it);
+            m_model->insertFile(name, ext, path, orgDir, fileSize);
+            ret.file[name] = fileSize;
+            size+=fileSize;
         }
         else if(!bf::is_symlink(*it))
         {
             QString name = QString::fromWCharArray(it->path().filename().c_str());
-            size_t dir_size = getDirSize(it->path());
+            QString path = QString::fromWCharArray(it->path().c_str());
+            int dirId = m_model->insertDirectory(name,path,orgDir);
+            size_t dir_size = getDirSize(it->path(), dirId);
+            m_model->setDirectorySize(dirId, dir_size);
             if(dir_size == ULLONG_MAX)
             {
                 ret.size = ULLONG_MAX;
@@ -93,6 +106,7 @@ DirDesc CDirSizeCalculation::getDirFilesList(QString path)
             size+=ret.dir[name];
         }
     }
+    m_model->setDirectorySize(orgDir, size);
     ret.size = size;
     return ret;
 }
