@@ -66,7 +66,12 @@ DirDesc MainWindow::getDirFilesList(QString path)
 
 void MainWindow::onButtonClicked()
 {
+    QString path = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
+                                                     "/home",
+                                                     QFileDialog::ShowDirsOnly
+                                                     | QFileDialog::DontResolveSymlinks);
 
+    ui->lineEdit->setText(path);
     DirDesc test = getDirFilesList(ui->lineEdit->text());
     series->clear();
 
